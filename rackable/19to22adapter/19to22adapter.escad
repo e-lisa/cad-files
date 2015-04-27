@@ -1,1 +1,70 @@
+// 19 to 22 inch rack adapter
+
+difference() { // For adding the screw holes
+  length = 80;
+  width = 45;
+  height = 45;
+
+  rack_length = 20;
+  rack_thickness = 3;
+  rack_hole_x_offset = 10;
+  rack_hole_y_offset = 10;
+  rack_hole_r = 5;
+
+  support_thickness = 10;
+  support_base_thickness = 2;
+  support_hole_y_offset = 20;
+  support_hole_z_offset = 20;
+  support_hole_r = 2;
+
+  support_length = length - rack_length;
+
+  union(r = 0) {
+
+    difference() { // Extra triangle supports on both sides of the Y axis
+      translate([support_base_thickness, 0, 0])
+	linear_extrude(height(x, y) = (-width / support_length) * x + width) square(size = [support_length, width]);
+      translate([support_base_thickness, support_thickness, 0])
+	linear_extrude(height) square(size = [support_length, width - support_thickness * 2]);
+    }
+    difference() { // Cut our L bracket
+      linear_extrude(height) square(size = [length, width]);
+
+      translate([0,0, rack_thickness])
+	linear_extrude(height)
+	translate([support_base_thickness, 0]) square(size = [length, width]);
+
+    }
+
+  }
+
+  // Holes for rackmount
+  translate([rack_hole_x_offset + support_length, width - rack_hole_y_offset, 0])
+    linear_extrude(height) circle(r = rack_hole_r);
+  translate([rack_hole_x_offset + support_length, rack_hole_y_offset, 0])
+    linear_extrude(height) circle(r = rack_hole_r);
+
+  // Holes for mounting to unit
+  translate([-1, support_hole_y_offset, support_hole_z_offset]) rotate(a = [0, 90])
+    linear_extrude(height) circle(r = support_hole_r);
+  translate([-1, width - support_hole_y_offset, support_hole_z_offset]) rotate(a = [0, 90])
+    linear_extrude(height) circle(r = support_hole_r); 
+  translate([-1, support_hole_y_offset, height - support_hole_z_offset]) rotate(a = [0, 90])
+    linear_extrude(height) circle(r = support_hole_r);
+  translate([-1, width - support_hole_y_offset, height - support_hole_z_offset]) rotate(a = [0, 90])
+    linear_extrude(height) circle(r = support_hole_r);
+
+  // TODO: Make this code work:
+  //  translate([0, support_hole_y_offset, 20]) rotate(a = [0, 90])
+  //  linear_extrude(height)
+  //  pack(size = [10, 10])  {
+  //   circle(r = 2);
+  //   circle(r = 2);
+  //   circle(r = 2);
+  //   circle(r = 2);
+  //  }
+
+
+}
+
 
