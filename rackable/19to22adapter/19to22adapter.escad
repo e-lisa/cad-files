@@ -1,71 +1,82 @@
 // 19 to 22 inch rack adapter
 
-difference() { // For adding the screw holes
-  length = 80;
-  width = 44.23;
-  height = 45;
+// Change these to adjust the total adapter size
+full_length = 80;
+full_width = 44.23;
+full_height = 45;
 
-  rack_length = 20;
-  rack_thickness = 2.5;
-  rack_hole_r = 6.5 / 2;
-  //  rack_hole_x_offset = (11.75 / 2) + 3.25;
-  rack_hole_x_offset = (11.75 / 2) + 5.3;
-  rack_hole_y_offset = rack_hole_r + 2.9;
+// Change these to adjust the interface to your device
+support_bracket_thickness = 10;
+support_bracket_base_thickness = 2.5;
+support_bracket_hole_y_offset = 18;
+support_bracket_hole_z_offset = 18;
+support_bracket_hole_r = 2;
 
-  support_thickness = 10;
-  support_base_thickness = 2.5;
-  support_hole_y_offset = 18;
-  support_hole_z_offset = 18;
-  support_hole_r = 2;
+// Change these to adjust the interface to your rack (should be standard)
+rack_mount_length = 20;
+rack_mount_thickness = 2.5;
+rack_mount_hole_r = 6.5 / 2;
+rack_mount_hole_x_offset = (11.75 / 2) + 5.3;
+rack_mount_hole_y_offset = rack_mount_hole_r + 2.9;
+
+// Add two triangle supports that end at the start of the interface to the rack.
+module dual_supports(length, width, height, support_length, support_thickness, support_base_thickness) {
+  difference() { // Extra triangle supports on both sides of the Y axis
+    translate([support_base_thickness, 0, 0])
+      linear_extrude(height(x, y) = (-width / support_length) * x + width) square(size = [support_length, width]);
+    translate([support_base_thickness, support_thickness, 0])
+      linear_extrude(height) square(size = [support_length, width - support_thickness * 2]);
+  }
+}
+
+// Create our basic L-shaped bracket
+module l_bracket(length, width, height, rack_thickness, support_base_thickness) {
+  difference() { // Cut our L bracket
+    linear_extrude(height) square(size = [length, width]);
+
+    translate([0,0, rack_thickness])
+      linear_extrude(height)
+      translate([support_base_thickness, 0]) square(size = [length, width]);
+  }
+}
+
+// Cuts the bolt holes for attachingto the rack
+module rack_bolt_holes(height, x_offset, y_offset, rack_hole_r) {
+  // Holes for rackmount
+  translate([x_offset, y_offset, 0])
+    linear_extrude(height) circle(r = rack_hole_r);
+}
+
+module support_screw_hole(height, y_offset, z_offset, support_hole_r) {
+  translate([-1, y_offset, z_offset]) rotate(a = [0, 90])
+    linear_extrude(height) circle(r = support_hole_r);
+}
+
+// Builds the full object
+module rack_adapter(length, width, height, rack_length, rack_thickness, rack_hole_r, rack_hole_x_offset, rack_hole_y_offset, support_thickness, support_base_thickness, support_hole_y_offset, support_hole_z_offset, support_hole_r) {
 
   support_length = length - rack_length;
 
-  union(r = 0) {
+  difference() { // For adding the screw holes
 
-    difference() { // Extra triangle supports on both sides of the Y axis
-      translate([support_base_thickness, 0, 0])
-	linear_extrude(height(x, y) = (-width / support_length) * x + width) square(size = [support_length, width]);
-      translate([support_base_thickness, support_thickness, 0])
-	linear_extrude(height) square(size = [support_length, width - support_thickness * 2]);
-    }
-    difference() { // Cut our L bracket
-      linear_extrude(height) square(size = [length, width]);
-
-      translate([0,0, rack_thickness])
-	linear_extrude(height)
-	translate([support_base_thickness, 0]) square(size = [length, width]);
-
+    union(r = 0) { // Combine supports with L bracket
+      dual_supports(length, width, height, support_length, support_thickness, support_base_thickness);
+      l_bracket(length, width, height, rack_thickness, support_base_thickness);
     }
 
+    // Holes for rackmount
+    rack_bolt_holes(height, rack_hole_x_offset + support_length, width - rack_hole_y_offset, rack_hole_r);
+    rack_bolt_holes(height, rack_hole_x_offset + support_length, rack_hole_y_offset, rack_hole_r);
+
+    // Holes for mounting to unit
+
+    support_screw_hole(height, support_hole_y_offset, support_hole_z_offset, support_hole_r);
+    support_screw_hole(height, width - support_hole_y_offset, support_hole_z_offset, support_hole_r);
+    support_screw_hole(height, support_hole_y_offset, height - support_hole_z_offset, support_hole_r);
+    support_screw_hole(height, width - support_hole_y_offset, height - support_hole_z_offset, support_hole_r);
   }
-
-  // Holes for rackmount
-  translate([rack_hole_x_offset + support_length, width - rack_hole_y_offset, 0])
-    linear_extrude(height) circle(r = rack_hole_r);
-  translate([rack_hole_x_offset + support_length, rack_hole_y_offset, 0])
-    linear_extrude(height) circle(r = rack_hole_r);
-
-  // Holes for mounting to unit
-  translate([-1, support_hole_y_offset, support_hole_z_offset]) rotate(a = [0, 90])
-    linear_extrude(height) circle(r = support_hole_r);
-  translate([-1, width - support_hole_y_offset, support_hole_z_offset]) rotate(a = [0, 90])
-    linear_extrude(height) circle(r = support_hole_r); 
-  translate([-1, support_hole_y_offset, height - support_hole_z_offset]) rotate(a = [0, 90])
-    linear_extrude(height) circle(r = support_hole_r);
-  translate([-1, width - support_hole_y_offset, height - support_hole_z_offset]) rotate(a = [0, 90])
-    linear_extrude(height) circle(r = support_hole_r);
-
-  // TODO: Make this code work:
-  //  translate([0, support_hole_y_offset, 20]) rotate(a = [0, 90])
-  //  linear_extrude(height)
-  //  pack(size = [10, 10])  {
-  //   circle(r = 2);
-  //   circle(r = 2);
-  //   circle(r = 2);
-  //   circle(r = 2);
-  //  }
-
-
 }
 
+// Call the main construct
+rack_adapter(full_length, full_width, full_height, rack_mount_length, rack_mount_thickness, rack_mount_hole_r, rack_mount_hole_x_offset, rack_mount_hole_y_offset, support_bracket_thickness, support_bracket_base_thickness, support_bracket_hole_y_offset, support_bracket_hole_z_offset, support_bracket_hole_r);
 
