@@ -2,19 +2,20 @@
 
 difference() { // For adding the screw holes
   length = 80;
-  width = 45;
+  width = 44.23;
   height = 45;
 
   rack_length = 20;
-  rack_thickness = 3;
-  rack_hole_x_offset = 10;
-  rack_hole_y_offset = 10;
-  rack_hole_r = 5;
+  rack_thickness = 2.5;
+  rack_hole_r = 6.5 / 2;
+  //  rack_hole_x_offset = (11.75 / 2) + 3.25;
+  rack_hole_x_offset = (11.75 / 2) + 5.3;
+  rack_hole_y_offset = rack_hole_r + 2.9;
 
   support_thickness = 10;
-  support_base_thickness = 2;
-  support_hole_y_offset = 20;
-  support_hole_z_offset = 20;
+  support_base_thickness = 2.5;
+  support_hole_y_offset = 18;
+  support_hole_z_offset = 18;
   support_hole_r = 2;
 
   support_length = length - rack_length;
