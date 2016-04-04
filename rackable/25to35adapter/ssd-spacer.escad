@@ -1,0 +1,153 @@
+// This code is licensensed under:
+//
+// Creative Commons CC0 (public domain)
+//
+// https://creativecommons.org/publicdomain/zero/1.0/
+//
+// Created by Andrew Engelbrecht 2016
+//
+// ssd-spacer.escad is an ImplicitCAD/OpenSCAD description
+// of a spacer to place between an SSD and the other side
+// of a server's 3.5" drive caddy.
+//
+
+
+height = 13;
+width = 101.6 - 69.85 - 0.5; // -0.5 gives a little wiggle room
+length = 99;
+
+wallWidth = 2.5;
+floorHeight = 2;
+
+wallCurveRadius = height - floorHeight;
+
+ssdScrewHeight = 3;
+ssdScrewDistance1 = 14;
+ssdScrewDistance2 = 90.5;
+ssdScrewRadius = 1.75;
+ssdScrewdriverRadius = 4;
+
+caddyScrewHeight = 6.35;
+caddyScrewDistance1 = 28;
+caddyScrewDistance2 = 69.5;
+caddyScrewRadius = 1.35; // smaller for grip
+caddyNutSpaceRadius = 4;
+
+sigmoidSteepness = -0.49;
+sigmoidCenterOffset = width / 2 - wallWidth - 5;
+sigmoidHeight = floorHeight;
+
+big = 1000; // arbitrarily big number
+
+
+module screwHole (radius, x, y, z, angle) {
+
+    translate (x, y, z) {
+        rotate ([0,angle,0]) {
+            linear_extrude (big) {
+                circle (radius);
+            }
+        }
+    }
+}
+
+// helper module for creating screw head, nut, and/or screw driver access
+module accessSpaceHelper (radius, x, y, z, length, angle, translateFunction) {
+
+    translate (x, y, z) {
+        rotate ([90, angle, 0]) {
+            linear_extrude (length, translate (h) = translateFunction (h)) {
+                union () {
+                    circle (radius);
+                    translate (-radius) {
+                        square (radius * 2, big);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// creates linearly extruded space for screw head and nut
+module accessSpaceLinear (radius, x, y, z, length, angle) {
+
+    function dontTranslate (h) = [0, 0];
+
+    accessSpaceHelper(radius, x, y, z, length, angle, dontTranslate);
+}
+
+// creates curved screw head and screwdriver access space
+module accessSpaceSigmoid (radius, x, y, z, length, angle) {
+
+    function sigmoidFunc (h) = [0, sigmoidHeight / (1 + exp (sigmoidSteepness * (h - sigmoidCenterOffset)))];
+
+    accessSpaceHelper(radius, x, y, z, length, angle, sigmoidFunc);
+}
+
+
+module main () {
+    difference () {
+
+        // outer shape: a box
+        linear_extrude (height) {
+            square (width, length);
+        }
+
+        // cut away center leaving curves along walls
+        translate (wallWidth - big / 2, wallWidth - big / 2, floorHeight) {
+            intersection () {
+
+                translate (big / 2, 0, 0) {
+                    linear_extrude (height = big, r = wallCurveRadius) {
+                        square (big, big);
+                    }
+                }
+
+                translate (0, big / 2, 0) {
+                    linear_extrude (height = big, r = wallCurveRadius) {
+                        square (big, big);
+                    }
+                }
+
+                translate (width - big / 2 - wallWidth * 2, 0, 0) {
+                    linear_extrude (height = big, r = wallCurveRadius) {
+                        square (big, big);
+                    }
+                }
+
+                translate (0, length - big / 2 - wallWidth * 2, 0) {
+                    linear_extrude (height = big) {
+                        square (big, big);
+                    }
+                }
+            }
+        }
+
+        // ssd screw holes and and access
+        union () {
+
+            for (distance = [ssdScrewDistance1, ssdScrewDistance2]) {
+
+                screwHole (ssdScrewRadius, wallWidth * 2, distance, ssdScrewHeight, 270);
+                // curved space for screw head and screw driver
+                accessSpaceSigmoid (ssdScrewdriverRadius, wallWidth, distance, ssdScrewdriverRadius, width - wallWidth, 90);
+            }
+        }
+
+        // caddy screw holes and and washer space
+        union () {
+
+            for (distance = [caddyScrewDistance1, caddyScrewDistance2]) {
+
+                screwHole (caddyScrewRadius, width - wallWidth * 2, distance, caddyScrewHeight, 90);
+                // linear space for optional nut
+                accessSpaceLinear (caddyNutSpaceRadius, width - wallWidth, distance, caddyScrewHeight, width / 2 - wallWidth, 270);
+            }
+        }
+
+    }
+}
+
+
+main();
+
