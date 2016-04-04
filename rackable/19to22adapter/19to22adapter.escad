@@ -1,22 +1,24 @@
 // 19 to 22 inch rack adapter
 
 // Change these to adjust the total adapter size
-full_length = 80;
+full_length = 100;
 full_width = 44.23;
 full_height = 45;
 
 // Change these to adjust the interface to your device
-support_bracket_thickness = 10;
+support_bracket_thickness = 9;
 support_bracket_base_thickness = 2.5;
-support_bracket_hole_y_offset = 18;
-support_bracket_hole_z_offset = 18;
-support_bracket_hole_r = 2;
+support_bracket_hole_r = 2.9 / 2;
+support_bracket_hole_y_offset = support_bracket_hole_r + 11;
+support_bracket_hole_z_offset = support_bracket_hole_r + 15.75;
+support_bracket_hole_z_offset_top = support_bracket_hole_r + 35.75;
+
 
 // Change these to adjust the interface to your rack (should be standard)
 rack_mount_length = 20;
 rack_mount_thickness = 2.5;
-rack_mount_hole_r = 6.5 / 2;
-rack_mount_hole_x_offset = (11.75 / 2) + 5.3;
+rack_mount_hole_r = 7.5 / 2;
+rack_mount_hole_x_offset = rack_mount_hole_r + 5.3;
 rack_mount_hole_y_offset = rack_mount_hole_r + 2.9;
 
 // Add two triangle supports that end at the start of the interface to the rack.
@@ -53,7 +55,7 @@ module support_screw_hole(height, y_offset, z_offset, support_hole_r) {
 }
 
 // Builds the full object
-module rack_adapter(length, width, height, rack_length, rack_thickness, rack_hole_r, rack_hole_x_offset, rack_hole_y_offset, support_thickness, support_base_thickness, support_hole_y_offset, support_hole_z_offset, support_hole_r) {
+module rack_adapter(length, width, height, rack_length, rack_thickness, rack_hole_r, rack_hole_x_offset, rack_hole_y_offset, support_thickness, support_base_thickness, support_hole_y_offset, support_hole_z_offset, support_hole_z_offset_top, support_hole_r) {
 
   support_length = length - rack_length;
 
@@ -72,11 +74,11 @@ module rack_adapter(length, width, height, rack_length, rack_thickness, rack_hol
 
     support_screw_hole(height, support_hole_y_offset, support_hole_z_offset, support_hole_r);
     support_screw_hole(height, width - support_hole_y_offset, support_hole_z_offset, support_hole_r);
-    support_screw_hole(height, support_hole_y_offset, height - support_hole_z_offset, support_hole_r);
-    support_screw_hole(height, width - support_hole_y_offset, height - support_hole_z_offset, support_hole_r);
+    support_screw_hole(height, support_hole_y_offset, support_hole_z_offset_top, support_hole_r);
+    support_screw_hole(height, width - support_hole_y_offset, support_hole_z_offset_top, support_hole_r);
   }
 }
 
 // Call the main construct
-rack_adapter(full_length, full_width, full_height, rack_mount_length, rack_mount_thickness, rack_mount_hole_r, rack_mount_hole_x_offset, rack_mount_hole_y_offset, support_bracket_thickness, support_bracket_base_thickness, support_bracket_hole_y_offset, support_bracket_hole_z_offset, support_bracket_hole_r);
+rack_adapter(full_length, full_width, full_height, rack_mount_length, rack_mount_thickness, rack_mount_hole_r, rack_mount_hole_x_offset, rack_mount_hole_y_offset, support_bracket_thickness, support_bracket_base_thickness, support_bracket_hole_y_offset, support_bracket_hole_z_offset, support_bracket_hole_z_offset_top, support_bracket_hole_r);
 
